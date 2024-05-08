@@ -1,102 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import './App.css';
+import CatApp from './CatApp';
+import CatStatistics from './CatStatistics';
+import { initReactI18next } from 'react-i18next';
+import i18n from 'i18next';
 
-const API_KEY = 'live_jZrB6GVpb0hgmcPctleEBMRS6BHkFom7nxAa1I5HKIAejLwZ3dq5BFQ1BJ8WnSi6';
-
-const CatApp = () => {
-  const [catData, setCatData] = useState([]);
-  const [selectedCat, setSelectedCat] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('https://api.thecatapi.com/v1/images/search?limit=6', {
-          headers: {
-            'x-api-key': API_KEY,
-          },
-        });
-        const catsWithBreeds = response.data.filter(cat => cat.breeds && cat.breeds.length > 0);
-        
-        setCatData(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleCatClick = async (catId) => {
-    try {
-      const response = await axios.get(`https://api.thecatapi.com/v1/images/${catId}`, {
-        headers: {
-          'x-api-key': API_KEY,
+i18n
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: {
+        translation: {
+          random_cat_breeds: 'Random Cat Breeds',
+          switch_to_light_mode: 'Switch to Light Mode',
+          switch_to_dark_mode: 'Switch to Dark Mode',
+          loading: 'Loading...',
+          upvote: 'Upvote',
+          downvote: 'Downvote',
         },
-      });
-      setSelectedCat(response.data);
-    } catch (error) {
-      console.error('Error fetching cat details:', error);
-    }
-  };
-
-  const handleBack = () => {
-    setSelectedCat(null);
-  };
-
-  const handleVote = async (voteType, catId) => {
-    try {
-      await axios.post(`https://api.thecatapi.com/v1/votes`, {
-        image_id: catId,
-        value: voteType === 'upvote' ? 1 : 0,
-      }, {
-        headers: {
-          'x-api-key': API_KEY,
+      },
+      fr: {
+        translation: {
+          random_cat_breeds: 'Races de chats aléatoires',
+          switch_to_light_mode: 'Passer en mode clair',
+          switch_to_dark_mode: 'Passer en mode sombre',
+          loading: 'Chargement...',
+          upvote: 'Voter pour',
+          downvote: 'Voter contre',
         },
-      });
-      // Refresh data after voting
-      const response = await axios.get('https://api.thecatapi.com/v1/images/search?limit=6', {
-        headers: {
-          'x-api-key': API_KEY,
+      },
+      de: {
+        translation: {
+          random_cat_breeds: 'Zufällige Katzenrassen',
+          switch_to_light_mode: 'Zum hellen Modus wechseln',
+          switch_to_dark_mode: 'Zum dunklen Modus wechseln',
+          loading: 'Wird geladen...',
+          upvote: 'Upvote',
+          downvote: 'Downvote',
         },
-      });
-      setCatData(response.data);
-    } catch (error) {
-      console.error('Error voting for cat:', error);
-    }
-  };
+      },
+      es: {
+        translation: {
+          random_cat_breeds: 'Razas de gatos al azar',
+          switch_to_light_mode: 'Cambiar a modo claro',
+          switch_to_dark_mode: 'Cambiar a modo oscuro',
+          loading: 'Cargando...',
+          upvote: 'Upvote',
+          downvote: 'Downvote',
+        },
+      },
+      ru: {
+        translation: {
+          random_cat_breeds: 'Случайные породы кошек',
+          switch_to_light_mode: 'Переключиться на светлый режим',
+          switch_to_dark_mode: 'Переключиться на темный режим',
+          loading: 'Загрузка...',
+          upvote: 'Upvote',
+          downvote: 'Downvote',
+        },
+      },
+    },
+    lng: 'en',
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
+function App() {
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <h1>Random Cat Breeds</h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gridGap: '20px' }}>
-          {catData.map(cat => (
-            <div key={cat.id} style={{ cursor: 'pointer', border: '1px solid #ccc', borderRadius: '5px', overflow: 'hidden', transition: 'transform 0.3s ease' }} onClick={() => handleCatClick(cat.id)}>
-              <img src={cat.url} alt="Cat" style={{ width: '100%', height: 'auto' }} />
-              <div style={{ padding: '10px' }}>
-                <p style={{ fontWeight: 'bold', margin: '0' }}>{cat.breeds && cat.breeds.length > 0 ? cat.breeds[0].name : 'Unknown'}</p>
-                {selectedCat && selectedCat.id === cat.id && (
-                  <div style={{ marginTop: '20px' }}>
-                    <h2>{selectedCat.breeds && selectedCat.breeds.length > 0 ? selectedCat.breeds[0].name : 'Unknown'}</h2>
-                    <p>{selectedCat.breeds && selectedCat.breeds.length > 0 ? selectedCat.breeds[0].description : 'Description not available'}</p>
-                    <div style={{ marginTop: '10px' }}>
-                      <button style={{ marginRight: '10px', padding: '5px 10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => handleVote('upvote', selectedCat.id)}>Upvote</button>
-                      <button style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => handleVote('downvote', selectedCat.id)}>Downvote</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="App">
+      <CatApp />
+      <CatStatistics />
     </div>
   );
-};
+}
 
-export default CatApp;
+export default App;
